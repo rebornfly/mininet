@@ -50,12 +50,39 @@ namespace server
 			virtual void OnRead() = 0;
 			virtual void OnWrite() = 0;
 			virtual void OnError() = 0;
-		private:
+
+		protected:
 
 			uint32_t m_fd;
+		private:
+
 			uint32_t mask;
 
 			CEpoll* pEpoll;
+		};
+		
+		class IConn : public CEvSource
+		{
+		public:
+			IConn()
+			{
+
+			}
+			IConn(uint32_t m_so):CEvSource(m_so)
+			{
+
+			}
+			~IConn()
+			{
+
+			}
+			virtual void OnRead() = 0;
+			virtual void OnWrite() = 0;
+			virtual void OnError() = 0;
+
+		protected:
+
+			uint32_t m_uConnId;
 		};
 
 		class IDataHander
@@ -74,7 +101,7 @@ namespace server
 
 				~ILinkHander(){}
 
-				virtual void OnPeerClosed() = 0;
+				virtual void OnPeerClosed(IConn* conn) = 0;
 				virtual void OnError() = 0;
 				virtual void OnConnected() = 0;
 		};

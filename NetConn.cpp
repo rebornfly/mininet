@@ -3,7 +3,6 @@
 using namespace server::net;
 
 CNetConn::CNetConn():
-m_soId(-1),
 uPort(-1),
 uIp(-1),
 m_input(4*1024, 2048),
@@ -21,22 +20,37 @@ void CNetConn::OnRead()
 {
 	if(m_input.Size() == MAX_BUFFER_SIZE)
 	{
-		//log(Error, "input owerflow");
+		Log(Error, "input owerflow");
 		return;
 	}
 
 	char* pStart = m_input.Tail();
 
 Retry:
-	int rc = ::recv(m_soId, pStart, MAX_BUFFER_SIZE - m_input.Size(), 0);
+	int rc = ::recv(m_fd, pStart, MAX_BUFFER_SIZE - m_input.Size(), 0);
 
 	if(rc == 0)
 	{
-		linkHander->OnPeerClosed();
+		Log(Info, "OnRead pEpoll:%0x", GetEpoll());
+		linkHander->OnPeerClosed(this);
 	}
 	else if(rc == -1)
 	{
-		goto Retry;
+		if (errno == EINTR)
+		{
+			// 系统调用被信号中断
+			goto Retry;
+		}
+		else if (errno == EAGAIN)
+		{
+			// 非阻塞套接字上无任何数据可读
+			return;
+		}
+		else
+		{
+			Log(Error ,"recv err fd:%u:%s", m_fd, strerror(errno));
+			return;
+		}
 	}
 	else
 	{
@@ -49,31 +63,34 @@ void CNetConn::OnWrite()
 {
 	if(m_output.Size() == MAX_BUFFER_SIZE)
 	{
-	//	log(Error, "output buffer owerflow");
+		Log(Error, "output buffer owerflow");
 		return;
 	}
 	
 	if(m_output.Size() == 0)  //水平触发，移除
 	{
 
-		GetEpoll()->NetEpollDel(m_soId, EPOLL_WRITEABLE);
+		GetEpoll()->NetEpollDel(this, EPOLL_WRITEABLE);
 	}
 
 Retry:
-	int rc = ::send(m_soId, m_output.Data(), m_output.Size(), -1);
+	int rc = ::send(m_fd, m_output.Data(), m_output.Size(), -1);
 	if(rc == -1)
 	{
 		if(errno == EINTR)
 			goto Retry;
-		
-		return;
+		else
+		{
+			Log(Error ,"recv err:%s", strerror(errno));
+			return;
+		}
 	}
 	if(rc > 0)
 	{
 		if(rc == m_output.Size())
 		{
 			m_output.ResetSize(0) ;
-			GetEpoll()->NetEpollDel(m_soId, EPOLL_WRITEABLE);
+			GetEpoll()->NetEpollDel(this, EPOLL_WRITEABLE);
 		}
 		else
 		{
@@ -87,7 +104,7 @@ void CNetConn::Send(const char* data, uint32_t len)
 {
 	if(m_output.Size() == 0)
 	{
-		int rc = ::send(m_soId, data, len, 0);
+		int rc = ::send(m_fd, data, len, 0);
 		if(rc > 0)
 		{
 			if(rc == len)
@@ -96,7 +113,7 @@ void CNetConn::Send(const char* data, uint32_t len)
 			{
 				const char* pStart = data + rc;
 				m_output.AppendData(pStart, len - rc);      //此处不检查空间，默认一次发送数据小于8M
-				GetEpoll()->NetEpollAdd(m_soId, EPOLL_WRITEABLE);
+				GetEpoll()->NetEpollAdd(this, EPOLL_WRITEABLE);
 			}
 			return;
 		}
@@ -104,12 +121,12 @@ void CNetConn::Send(const char* data, uint32_t len)
 
 	if(!m_output.CheckCapacity(len))
 	{
-	//	log(Error, "buffer overflow drop:%u", len);
+		Log(Error, "buffer overflow drop:%u", len);
 		return;
 	}
 	else
 	{
 		m_output.AppendData(data, len);
-		GetEpoll()->NetEpollAdd(m_soId, EPOLL_WRITEABLE);
+		GetEpoll()->NetEpollAdd(this, EPOLL_WRITEABLE);
 	}
 }

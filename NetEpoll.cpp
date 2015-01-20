@@ -1,4 +1,5 @@
 #include "NetEpoll.h"
+#include "EvSource.h"
 
 using namespace server::net;
 
@@ -17,62 +18,79 @@ int CEpoll::NetEpollInit()
 	
 	if((m_epfd = epoll_create(1024)) == -1)
 	{
-	//	setErr(err, "epoll create :%s", strerror(errno));
+		Log(Error, "epoll create :%s", strerror(errno));
 		return NET_ERR;
 	}
 	
 	return NET_OK;
 }
 
-int CEpoll::NetEpollAdd( int fd, int mask)
+int CEpoll::NetEpollAdd(CEvSource* pEv, int mask)
 {
 	int op;
-	if(m_fdmap.find(fd) == m_fdmap.end()) op = EPOLL_CTL_ADD;
+	if(m_setEv.find(pEv) == m_setEv.end())
+	{
+		op = EPOLL_CTL_ADD;
+	}
 	else 
 	{
 		op = EPOLL_CTL_MOD;
-		mask |= m_fdmap[fd];
+		mask |= pEv->getCurrentMask();
 	}
 	
 	struct epoll_event es;
 	es.events = 0;
-	es.data.fd = fd;
+	es.data.ptr = pEv;
 	if(mask & EPOLL_READABLE) es.events |= EPOLLIN;
 	if(mask & EPOLL_WRITEABLE) es.events |= EPOLLOUT;
 
-	if(epoll_ctl(m_epfd, op, fd, &es) == -1)
+	if(epoll_ctl(m_epfd, op, pEv->getFd(), &es) == -1)
 	{
-	//	setErr("epoll_ctrl err:%s", strerror(errno));
+		Log(Error, "epoll_ctrl err:%s", strerror(errno));
 		return NET_ERR;
 	}
 	
 	//¸úÐÂÊÂ¼þ 
-	m_fdmap[fd] = mask;
+	m_setEv.insert(pEv);
+	pEv->setCurrentMask(mask);
 	return NET_OK;
 }
 
-int CEpoll::NetEpollDel( int fd , int mask)
+int CEpoll::NetEpollDel(CEvSource* pEv , int mask)
 {
 	int op ;
 	struct epoll_event ee;
-	ee.data.fd = fd;
+	ee.data.ptr = pEv;
 	ee.events = 0;
 	ee.data.u64 = 0;
 
-	int delmask = ~mask & m_fdmap[fd];
-	if(delmask == EPOLL_NONE) op = EPOLL_CTL_DEL;
-	else op = EPOLL_CTL_MOD;
+	int delmask = ~mask & pEv->getCurrentMask();
+	if(delmask == EPOLL_NONE)
+	{
+		op = EPOLL_CTL_DEL;
+	}
+	else
+	{
+		op = EPOLL_CTL_MOD;
+	}
 
 	ee.events =  delmask;
 
-	if(epoll_ctl(m_epfd, op, fd, &ee) == -1)
+	if(epoll_ctl(m_epfd, op, pEv->getFd(), &ee) == -1)
 	{
-	//	setErr(err, "epoll_ctrl del err:%s", strerror(errno));
+		Log(Error, "epoll_ctrl del err:%s", strerror(errno));
 		return NET_ERR;
 	}
 
-	if(delmask == EPOLL_NONE) m_fdmap.erase(fd);
-	else m_fdmap[fd] = delmask;
+	if(delmask == EPOLL_NONE)
+	{
+		m_setEv.erase(pEv);
+		pEv->setCurrentMask(EPOLL_NONE);
+	}
+	else 
+	{
+		pEv->setCurrentMask(delmask);
+	}
 
 	return NET_OK;
 
@@ -83,16 +101,35 @@ void CEpoll::NetEpollRun()
 	epoll_event events[1024];
 	while (!m_bStop)
 	{
-		int waits = epoll_wait(m_epfd, events, m_fdmap.size(), -1);
+		int waits = epoll_wait(m_epfd, events, m_setEv.size(), -1);
 		for(int i = 0; i < waits; i++)
 		{
 			int mask = EPOLL_NONE;
+			CEvSource* ev = events[i].data.ptr;
 			if(events[i].events & EPOLLIN)
-				mask |= EPOLL_READABLE;
+			{
+				ev->OnRead();
+			}
 			if(events[i].events & EPOLLOUT)
-				mask |= EPOLL_WRITEABLE;
+			{
+				ev->OnWrite();
+			}
 			if(events[i].events & EPOLLERR || events[i].events & EPOLLHUP)
-				mask |= EPOLL_ERR;
+			{
+				ev->OnError();
+			}
+			
 		}
+	}
+}
+
+void CEpoll::remove(CEvSource* pEv)
+{
+	if(m_setEv.find(pEv) != m_setEv.end())
+	{
+		struct epoll_event ev;
+		epoll_ctl(m_epfd, EPOLL_CTL_DEL , pEv->getFd(), &ev);
+		m_setEv.erase(pEv);
+		Log(Info, "erase fd:%u from epoll", pEv->getFd());
 	}
 }

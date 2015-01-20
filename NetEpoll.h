@@ -2,7 +2,9 @@
 
 #include <errno.h>
 #include <sys/epoll.h>
-#include <map>
+#include <set>
+#include <string.h>
+#include "Logger.h"
 
 
 namespace server{
@@ -21,22 +23,25 @@ namespace server{
 			NET_OK,
 			NET_ERR
 		};
+		
+		class CEvSource;
 		class CEpoll
 		{
 			public:
 				CEpoll();
 				~CEpoll();
 				int NetEpollInit();	
-				int NetEpollAdd(int fd, int mask);
-				int NetEpollDel(int fd, int mask);
+				int NetEpollAdd(CEvSource* pEv, int mask);
+				int NetEpollDel(CEvSource* pEv, int mask);
 				void NetEpollRun();
+				void remove(CEvSource* pEv);
 
 			private:
 
 				uint32_t m_epfd;
 				
 				//fd->mask
-				std::map<uint32_t, uint32_t> m_fdmap;
+				std::set<CEvSource*> m_setEv;
 
 				bool m_bStop;
 		};

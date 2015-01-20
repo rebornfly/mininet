@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "EvSource.h"
 
+
 namespace server
 {
 	namespace net
@@ -17,7 +18,7 @@ namespace server
 
 
 	////////////////////////////////
-
+		class IConn;
 		class CNetLinkHander : public ILinkHander
 		{
 			public:
@@ -26,7 +27,7 @@ namespace server
 				~CNetLinkHander();
 
 				virtual void OnError();
-				virtual void OnPeerClosed();
+				virtual void OnPeerClosed(IConn* conn);
 				virtual void OnConnected();
 		};
 	}

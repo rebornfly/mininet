@@ -17,9 +17,9 @@ namespace server
 				static int netSetSockReuse(int so)
 				{
 					int yes = 1;
-					if(setsockopt(so, SOL_SOCKET, SO_REUSEADDR, (const char*)yes, sizeof(yes)) != 0)
+					if(setsockopt(so, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) != 0)
 					{
-						//	log(Error, "set sock SO_REUSERADDR err:%s", strerror(errno));
+						Log(Error, "set sock SO_REUSERADDR err:%s", strerror(errno));
 						return NET_ERR;
 					}
 					return NET_OK;	
@@ -29,29 +29,29 @@ namespace server
 					int s = socket(domain, SOCK_STREAM, 0);
 					if(s == -1)
 					{
-						//	log(Error, "create sock err:%s", strerror(errno))
+						Log(Error, "create sock err:%s", strerror(errno));
 						return NET_ERR;
 					}
 					if(netSetSockReuse(s) != NET_OK)
 					{
-						//	log(Error, "set sock reuse err:%s", strerror(errno));
+						Log(Error, "set sock reuse err %d:%s", s, strerror(errno));
 						close(s);
 						return NET_ERR;
 					}
 					return s;
 				}
 
-				static int netListen(int so, void* addr, socklen_t len, int backlog = 20)
+				static int netListen(int so, void* addr, socklen_t len, int backLog = 20)
 				{
 					if(bind(so, (struct sockaddr*)addr, len) == -1)
 					{
-						//	log(Error, "bind sock err:%s", strerror(errno));
+						Log(Error, "bind sock err:%s", strerror(errno));
 						close(so);
 						return NET_ERR;
 					}
-					if(listen(so, backlog) != 0)
+					if(listen(so, backLog) != 0)
 					{
-						//	log(Error, "listen sock err:%s", strerror(errno));
+						Log(Error, "listen sock err:%s", strerror(errno));
 						close(so);
 						return NET_ERR;
 					}
@@ -65,12 +65,12 @@ namespace server
 
 					if(flag == -1)
 					{
-						//log(Error, "fcntl(F_GETFL) error:%s", strerror(errno));
+						Log(Error, "fcntl(F_GETFL) error:%s", strerror(errno));
 						return NET_ERR;
 					}
 					if(fcntl(so, F_SETFL, flag | O_NONBLOCK) == -1)
 					{
-						//	log(Error, "fcntl(F_SETFL) error:%s", strerror(errno));
+						Log(Error, "fcntl(F_SETFL) error:%s", strerror(errno));
 						return NET_ERR;
 					}
 
@@ -82,7 +82,7 @@ namespace server
 					int m_so = ::socket(AF_INET, SOCK_STREAM, 0);
 					if(m_so == -1)
 					{
-						//	log(Error, "Create server Error:%s", ip);
+						Log(Error, "Create server Error:%s", ip);
 						return NULL;
 					}
 
@@ -94,6 +94,7 @@ namespace server
 						if(addr == INADDR_ANY)
 						{
 							close(m_so);
+							Log(Error, "addr is NULL,");
 							return NULL;
 						}
 					}
@@ -106,6 +107,7 @@ namespace server
 					if(rc < 0)
 					{
 						close(m_so);
+						Log(Error, "Client connet err:%s", strerror(errno));
 						return NULL;
 					}
 
@@ -113,15 +115,15 @@ namespace server
 
 					pConn->SetEpoll(pE);
 
-					pConn->GetEpoll()->NetEpollAdd(m_so, EPOLL_READABLE);
+					pConn->GetEpoll()->NetEpollAdd(pConn, EPOLL_READABLE);
 
 					return pConn;
-					//log(Info, "Connect to %s:%u success", ip, uport);
+					Log(Info, "Connect to %s:%u success", ip, uport);
 
 				}
 		};
 
-		class CNetServer : public CEvSource
+		class CNetServer :	public CEvSource
 						   ,public IDataHanderAware
 						   ,public ILinkHanderAware
 		{
@@ -141,10 +143,6 @@ namespace server
 				virtual void OnRead();
 				
 				void StartServer(const char* ip, uint32_t port);
-
-			private:
-
-				uint32_t m_so;
 				
 		};
 	}

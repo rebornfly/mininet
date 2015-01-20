@@ -9,16 +9,16 @@ namespace server
 {
 	namespace net
 	{
-		
-		class CNetConn : public CEvSource
+
+		class CNetConn : public IConn
 		{
 			public:
 				
 				CNetConn();
 				CNetConn(uint32_t so, uint32_t ip, uint32_t port, ILinkHander* linkHander, IDataHander* dataHander):
+				IConn(so),
 				linkHander(linkHander),
 				dataHander(dataHander),
-				m_soId(so),
 				uPort(port),
 				uIp(ip),
 				m_input(4*1024, 2*1024),
@@ -48,9 +48,7 @@ namespace server
 
 				ILinkHander* linkHander;
 				IDataHander* dataHander;
-
-				uint32_t m_soId; //sock id
-
+	
 				uint32_t uPort;
 				uint32_t uIp;
 				

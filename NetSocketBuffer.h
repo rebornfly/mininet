@@ -10,16 +10,19 @@ namespace server
 			public:
 
 				CNetSockBuff(uint32_t MaxBlocks, uint32_t uBlocks):
-				  uMaxBlock(MaxBlocks),
-				  uBlockSize(uBlocks),
-				  uBlocks(0),
-				  uDataSize(0)
-				  {
-				  
-				  }
+				uMaxBlock(MaxBlocks),
+				uBlockSize(uBlocks),
+				uBlocks(0),
+				uDataSize(0)
+				{
+					m_data = new char[2*uBlockSize];
+				}
 				~CNetSockBuff()
 				{
-				
+					if(m_data)
+					{
+						delete m_data;
+					}
 				}
 
 				char* Tail()
@@ -79,6 +82,7 @@ namespace server
 				{
 					uDataSize = uSize;
 				}
+
 			private:
 
 				uint32_t uMaxBlock;
