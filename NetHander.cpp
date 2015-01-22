@@ -13,9 +13,10 @@ CNetDataHander::~CNetDataHander()
 {
 	
 }
-
+//@brief 根据发送数据协议解析
 void CNetDataHander::OnData(char* data, uint32_t len)
 {
+	//TODO 进行消息解析并由DataHander进行消息派遣
 	Log(Info, "%s, size:%u", data, len);
 }
 
