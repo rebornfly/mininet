@@ -59,7 +59,7 @@ namespace server
 				}
 
 
-				static int netSetNonBlock(char* err, int so)
+				static int netSetNonBlock(int so)
 				{
 					int flag  = fcntl(so, F_GETFL);
 
@@ -98,11 +98,17 @@ namespace server
 							return NULL;
 						}
 					}
-
+					
 					sa.sin_family = AF_INET;
 					sa.sin_port = htons(uport);
 					sa.sin_addr.s_addr = addr;
-
+					
+					if(NET_OK != netSetNonBlock(m_so))
+					{
+						close(m_so);
+						Log(Error, "Set NonBlock err:%s", strerror(errno));
+						return NULL;	
+					}
 					int rc = ::connect(m_so, (struct sockaddr*)&sa, sizeof(sa));
 					if(rc < 0)
 					{
