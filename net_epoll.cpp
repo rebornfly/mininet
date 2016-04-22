@@ -138,26 +138,8 @@ void CEpoll::netEpollRun()
 			for (std::set<CEvSource*>::iterator it = m_rmSet.begin(); it != m_rmSet.end(); )
 			{			
 				CEvSource* es = *it;	
-				if(es->getEventType() == ENUM_TYPE_CONN)
-				{
-/*					if(es->getUserCount() == 0)
-					{
-//                      log(Warn, "[netEpollRun] erase fd:%u----%p from epoll", es->getFd(), es);
-						m_rmSet.erase(it++);
-						delete es;	
-						es = NULL;
-					}
-					else
-						it++;
-*/		            delete es;
-					m_rmSet.erase(it++);
-                }
-				else
-				{
- //                 log(Warn, "[netEpollRun] erase fd:%u--%p from epoll", es->getFd(), es);
-					delete es;
-					m_rmSet.erase(it++);
-				}
+				delete es;
+				m_rmSet.erase(it++);
 			}
         
 		}
@@ -201,7 +183,7 @@ int CEpoll::createEventFd()
 
 void CEpoll::wakeup()
 {
-    uint64_t u = 0;
+    uint64_t u = 1;
 
     ssize_t flag = ::write(m_eventFd, &u, sizeof(uint64_t));
 
@@ -236,7 +218,7 @@ void CEpoll::pushFuctor( Functor& fun)
         m_vecPendingFunctors.push_back(fun);
     }
 
-    if (m_bcallingPendingFunctors)
+    if (!m_bcallingPendingFunctors)
     {
         wakeup();
     }
