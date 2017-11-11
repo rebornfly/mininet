@@ -15,49 +15,49 @@
 
 namespace znb
 {
-	/** @defgroup epoll模块儿
-		* @author reborn-lys
-		* @version 0.1
-		* @date 2015.4.2
-		* @{
-	*/
-	enum EPOLL_STAT
-	{
-		EPOLL_NONE,
-		EPOLL_READABLE,
-		EPOLL_WRITEABLE,
-		EPOLL_ERR
-	};
-	enum SOCKET_STAT
-	{
-		NET_OK,
-		NET_ERR
-	};
-		
-	class CEvSource;
+    /** @defgroup epoll模块儿
+        * @author reborn-lys
+        * @version 0.1
+        * @date 2015.4.2
+        * @{
+    */
+    enum EPOLL_STAT
+    {
+        EPOLL_NONE,
+        EPOLL_READABLE,
+        EPOLL_WRITEABLE,
+        EPOLL_ERR
+    };
+    enum SOCKET_STAT
+    {
+        NET_OK,
+        NET_ERR
+    };
+        
+    class CEvSource;
     class WakeupEvent;
-	class CEpoll
-	{
-		public:
+    class CEpoll
+    {
+        public:
             typedef boost::function<void()> Functor;
 
-			CEpoll();
-			~CEpoll();
+            CEpoll();
+            ~CEpoll();
 
-			int  netEpollAdd(CEvSource* pEv, int mask);
+            int  netEpollAdd(CEvSource* pEv, int mask);
 
-			int  netEpollDel(CEvSource* pEv, int mask);
+            int  netEpollDel(CEvSource* pEv, int mask);
 
-			void netEpollRun();
+            void netEpollRun();
 
             void netEpollStop();
 
-			void remove(CEvSource* pEv);
-			
-			uint32_t getSize()
-			{
-				return m_rmSet.size();
-			}
+            void remove(CEvSource* pEv);
+            
+            uint32_t getSize()
+            {
+                return m_rmSet.size();
+            }
 
             void pushFuctor(Functor& fun);
 
@@ -72,15 +72,15 @@ namespace znb
             /*创造eventfd*/
             int createEventFd();
 
-		private:
+        private:
 
-			int m_epfd;
-				
-			//fd->mask
-			std::set<CEvSource*> m_setEv;
-			
-			/**待删除的事件集合*/
-			std::set<CEvSource*> m_rmSet;
+            int m_epfd;
+                
+            //fd->mask
+            std::set<CEvSource*> m_setEv;
+            
+            /**待删除的事件集合*/
+            std::set<CEvSource*> m_rmSet;
 
             /* 有子线程唤醒主线程要执行的函数 **/
             std::vector<Functor> m_vecPendingFunctors;
@@ -91,9 +91,9 @@ namespace znb
 
             bool m_bcallingPendingFunctors;
     
-			bool m_bStop;
+            bool m_bStop;
 
             Mutex m_mutex;
-	};
+    };
 }
 #endif

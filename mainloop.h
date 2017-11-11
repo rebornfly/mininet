@@ -5,17 +5,17 @@
 
 namespace znb
 {
-	class CMainLoop
-	{
-	public:
-		CMainLoop();
-		~CMainLoop();
+    class CMainLoop
+    {
+    public:
+        CMainLoop();
+        ~CMainLoop();
 
-	public:
-		void Init();
-		void Start();
-		void Stop();
-	};
+    public:
+        void Init();
+        void Start();
+        void Stop();
+    };
 }
 
 #endif // MAIN_LOOP_H_

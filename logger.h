@@ -42,46 +42,46 @@ struct INTERFACE_LOG
 };
 
 typedef struct {
-	void **array;
-	int len;
-	int size;	
-	void* del;
+    void **array;
+    int len;
+    int size;    
+    void* del;
 }zc_arraylist_t;
 typedef struct zlog_rule_s {
-	char category[MAXLEN_CFG_LINE + 1];	
-	char compare_char;	
-	/*	 
-	* [*] log all level	 
-	* [.] log level >= rule level, default	 
-	* [=] log level == rule level	 
-	* [!] log level != rule level	 
-	*/	
-	int level;	
-	unsigned char level_bitmap[32]; 
-	/* for category determine whether ouput or not */
-	char file_path[MAXLEN_PATH + 1];
-	zc_arraylist_t *dynamic_file_specs;	
-	int static_file_descriptor;
+    char category[MAXLEN_CFG_LINE + 1];    
+    char compare_char;    
+    /*     
+    * [*] log all level     
+    * [.] log level >= rule level, default     
+    * [=] log level == rule level     
+    * [!] log level != rule level     
+    */    
+    int level;    
+    unsigned char level_bitmap[32]; 
+    /* for category determine whether ouput or not */
+    char file_path[MAXLEN_PATH + 1];
+    zc_arraylist_t *dynamic_file_specs;    
+    int static_file_descriptor;
 } zlog_rule_t;
 
 typedef struct zlog_category_s 
-{	
-	char name[MAXLEN_PATH + 1];
-	size_t name_len;	
-	unsigned char level_bitmap[32];	
-	unsigned char level_bitmap_backup[32];
-	zc_arraylist_t *fit_rules;	
-	zc_arraylist_t *fit_rules_backup;
+{    
+    char name[MAXLEN_PATH + 1];
+    size_t name_len;    
+    unsigned char level_bitmap[32];    
+    unsigned char level_bitmap_backup[32];
+    zc_arraylist_t *fit_rules;    
+    zc_arraylist_t *fit_rules_backup;
 } zlog_category_t;
 
 enum LogLevel
 {
-	Fatal = LOG_EMERG,
-	Error = LOG_ERR,
-	Warn = LOG_WARNING,
-	Notice = LOG_NOTICE,
-	Info = LOG_INFO,
-	Debug = LOG_DEBUG
+    Fatal = LOG_EMERG,
+    Error = LOG_ERR,
+    Warn = LOG_WARNING,
+    Notice = LOG_NOTICE,
+    Info = LOG_INFO,
+    Debug = LOG_DEBUG
 };
 
 char *ip2str(uint32_t ip);

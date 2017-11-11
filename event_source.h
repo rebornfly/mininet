@@ -10,82 +10,82 @@
 #define HEADER_SIZE 24
 namespace znb 
 {
-	/** @defgroup 网络框架库
-		* @author reborn-lys
-		* @version 0.1
-		* @date 2015.4.2
-		* @{
-	*/
+    /** @defgroup 网络框架库
+        * @author reborn-lys
+        * @version 0.1
+        * @date 2015.4.2
+        * @{
+    */
 
-	enum EventType
-	{
-		ENUM_TYPE_CONN = 2,      /**事件类型为连接**/
-		ENUM_TYPE_TIMER = 3,	 /**事件类型为定时器**/
-		ENUM_TYPE_LOGGER = 4,	 /**事件类型为zlog**/
+    enum EventType
+    {
+        ENUM_TYPE_CONN = 2,      /**事件类型为连接**/
+        ENUM_TYPE_TIMER = 3,     /**事件类型为定时器**/
+        ENUM_TYPE_LOGGER = 4,     /**事件类型为zlog**/
         ENUM_TYPE_EVENTFD = 5,
-		ENUM_TYPE_UNKNOWN = 6	 /**未知类型**/
-	};
-	class CEvSource
-	{
-	public:
+        ENUM_TYPE_UNKNOWN = 6     /**未知类型**/
+    };
+    class CEvSource
+    {
+    public:
 
         typedef boost::function<void()> EventCallback;
 
-		CEvSource():m_fd(-1),m_uMask(0), m_type(ENUM_TYPE_UNKNOWN)
-		{
-				
-		}
+        CEvSource():m_fd(-1),m_uMask(0), m_type(ENUM_TYPE_UNKNOWN)
+        {
+                
+        }
 
-		explicit CEvSource(uint32_t fd):m_fd(fd),m_type(ENUM_TYPE_UNKNOWN)
+        explicit CEvSource(uint32_t fd):m_fd(fd),m_type(ENUM_TYPE_UNKNOWN)
         {
 
         }
-		CEvSource(uint32_t fd, CEpoll* ep):m_fd(fd),m_pEpoll(ep),m_type(ENUM_TYPE_UNKNOWN)
-		{
-				
-		}
+        CEvSource(uint32_t fd, CEpoll* ep):m_fd(fd),m_pEpoll(ep),m_type(ENUM_TYPE_UNKNOWN)
+        {
+                
+        }
 
-		virtual ~CEvSource()
-		{
-			if(-1 != m_fd)
-			{
-				::close(m_fd);
-			}
-		}
+        virtual ~CEvSource()
+        {
+            if(-1 != m_fd)
+            {
+                ::close(m_fd);
+            }
+        }
 
-		void setEpoll(CEpoll* pE)
-		{
-			m_pEpoll = pE;
-		}
-			
-		CEpoll* getEpoll()
-		{	
-			return m_pEpoll;
-		}	
+        void setEpoll(CEpoll* pE)
+        {
+            m_pEpoll = pE;
+        }
+            
+        CEpoll* getEpoll()
+        {    
+            return m_pEpoll;
+        }    
 
-		int getFd()
-		{	
-			return m_fd;
-		}
+        int getFd()
+        {    
+            return m_fd;
+        }
 
-		uint32_t getCurrentMask()
-		{
-			return m_uMask;
-		}
+        uint32_t getCurrentMask()
+        {
+            return m_uMask;
+        }
 
-		void setCurrentMask(uint32_t uMask)
-		{
-			m_uMask = uMask;
-		}
+        void setCurrentMask(uint32_t uMask)
+        {
+            m_uMask = uMask;
+        }
 
-		void setEventType(EventType type)
-		{
-			m_type = type;
-		}
-		EventType getEventType()
-		{
-			return m_type;
-		}
+        void setEventType(EventType type)
+        {
+            m_type = type;
+        }
+        EventType getEventType()
+        {
+            return m_type;
+        }
 
         void setReadCallback(const EventCallback& cb)
         { readCallback_ = cb; }
@@ -98,24 +98,24 @@ namespace znb
         EventCallback writeCallback_;
         EventCallback errorCallback_;
 
-	//	void onRead() ;
-	//	void onWrite() ;
-	//	void onError();
+    //    void onRead() ;
+    //    void onWrite() ;
+    //    void onError();
 
-	protected:
+    protected:
 
-		int m_fd;
-	private:
-	
-		uint32_t m_uMask;
+        int m_fd;
+    private:
+    
+        uint32_t m_uMask;
 
-		CEpoll* m_pEpoll;
+        CEpoll* m_pEpoll;
 
-		EventType m_type;
+        EventType m_type;
 
-		Mutex mutex;
-	};
-	
+        Mutex mutex;
+    };
+    
     /*
      *   唤醒I/O线程事件源
     */
@@ -154,78 +154,78 @@ namespace znb
     };
 
     enum ConnectStat
-	{
-		ENUM_STATE_NONE,
-		ENUM_STATE_CONNECTING,
-		ENUM_STATE_CONNECTED
-	};
+    {
+        ENUM_STATE_NONE,
+        ENUM_STATE_CONNECTING,
+        ENUM_STATE_CONNECTED
+    };
 
-	class IConn : public CEvSource
-	{
-	public:
-		IConn()
-		{
+    class IConn : public CEvSource
+    {
+    public:
+        IConn()
+        {
 
-		}
-		explicit IConn(uint32_t m_so):CEvSource(m_so)
-		{
+        }
+        explicit IConn(uint32_t m_so):CEvSource(m_so)
+        {
 
-		}
-		virtual ~IConn()
-		{
-		}
-		void setConnStat(ConnectStat stat)
-		{
-			m_stat = stat;
-		}
+        }
+        virtual ~IConn()
+        {
+        }
+        void setConnStat(ConnectStat stat)
+        {
+            m_stat = stat;
+        }
 
-		ConnectStat getConnStat()
-		{
-			return m_stat;
-		}
+        ConnectStat getConnStat()
+        {
+            return m_stat;
+        }
 
-		virtual void onRead() = 0;
-		virtual void onWrite() = 0;
-		virtual void onError() = 0;
-		
+        virtual void onRead() = 0;
+        virtual void onWrite() = 0;
+        virtual void onError() = 0;
+        
         virtual uint32_t getPeerPort() = 0;
         virtual uint32_t getPeerIp() = 0;
 
-		virtual void send(std::string& strMsg, uint32_t cmd, uint32_t requestId, uint64_t uid64) = 0;
-		virtual void sendResponse(google::protobuf::Message& msg, uint32_t cmd, uint32_t requestId, uint64_t uid64) = 0;
-		virtual void sendError(uint32_t cmd, uint32_t requestId, uint8_t error) = 0;
-	protected:
+        virtual void send(std::string& strMsg, uint32_t cmd, uint32_t requestId, uint64_t uid64) = 0;
+        virtual void sendResponse(google::protobuf::Message& msg, uint32_t cmd, uint32_t requestId, uint64_t uid64) = 0;
+        virtual void sendError(uint32_t cmd, uint32_t requestId, uint8_t error) = 0;
+    protected:
 
-		uint32_t m_uConnId;
+        uint32_t m_uConnId;
 
-		ConnectStat m_stat;
-	};
+        ConnectStat m_stat;
+    };
     class CTcpConn;
-	class IDataHandler
-	{
-	public:
+    class IDataHandler
+    {
+    public:
 
-		~IDataHandler(){}
+        ~IDataHandler(){}
 
-		virtual int onData(const boost::shared_ptr<CTcpConn>& conn, char* data, uint32_t len) = 0;
+        virtual int onData(const boost::shared_ptr<CTcpConn>& conn, char* data, uint32_t len) = 0;
 
-	};
+    };
 
-	class IDataHandlerAware
-	{
-	public:
-		virtual IDataHandler* getDataHandler() const
-		{
-			return m_pDataHandler;
-		}
-				
-		virtual void setDataHandler(IDataHandler* handler)
-		{
-			m_pDataHandler = handler;
-		}
-	private:
-		IDataHandler* m_pDataHandler;
-	};
+    class IDataHandlerAware
+    {
+    public:
+        virtual IDataHandler* getDataHandler() const
+        {
+            return m_pDataHandler;
+        }
+                
+        virtual void setDataHandler(IDataHandler* handler)
+        {
+            m_pDataHandler = handler;
+        }
+    private:
+        IDataHandler* m_pDataHandler;
+    };
 }
 
 #endif

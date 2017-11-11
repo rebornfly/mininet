@@ -9,19 +9,19 @@ OBJS = $(SRCS:.cpp=.o)
 
 .SUFFIXES: .o .cpp
 .cpp.o:
-	$(CXX) $(CXXFLAG) ${INCLUDE} -g -std=c++11 -I/usr/include/mysql  -c -o $@ $<
+    $(CXX) $(CXXFLAG) ${INCLUDE} -g -std=c++11 -I/usr/include/mysql  -c -o $@ $<
 
 all: libnet.a 
 
 libnet.a: $(OBJS) 
-	$(ARRU) ../lib/libtinynet.a  *.o /usr/lib64/mysql/libmysqlclient_r.so.16 
+    $(ARRU) ../lib/libtinynet.a  *.o /usr/lib64/mysql/libmysqlclient_r.so.16 
 
 ../../lib:
-	mkdir ../../lib
+    mkdir ../../lib
 
 clean:
-	rm -f *.o
-	rm -f ../lib/libtinynet.a 
+    rm -f *.o
+    rm -f ../lib/libtinynet.a 
 
 install:
 

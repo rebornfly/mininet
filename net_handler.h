@@ -7,24 +7,24 @@
 
 namespace znb
 {
-	/**datahandler 处理连接上收到的数据*/
-	class CNetDataHandler : public IDataHandler
-	{
-		public:
-			CNetDataHandler();
-			~CNetDataHandler();
-				
-			void setRequestCtx(RequestMfcMap* reqCtx)
-			{
-				m_pRequestCtx = reqCtx;
-			}
+    /**datahandler 处理连接上收到的数据*/
+    class CNetDataHandler : public IDataHandler
+    {
+        public:
+            CNetDataHandler();
+            ~CNetDataHandler();
+                
+            void setRequestCtx(RequestMfcMap* reqCtx)
+            {
+                m_pRequestCtx = reqCtx;
+            }
 
-			virtual int onData(const TcpConnPtr& conn, char* data, uint32_t len);
+            virtual int onData(const TcpConnPtr& conn, char* data, uint32_t len);
 
-		private:
+        private:
 
-			RequestMfcMap* m_pRequestCtx;
-	};
+            RequestMfcMap* m_pRequestCtx;
+    };
 }
 
 #endif

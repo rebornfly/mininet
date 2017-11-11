@@ -8,7 +8,7 @@ using namespace znb;
 
 static void sig_pipe(int signo)
 {
-	log(Info, "SIGPIPE...");
+    log(Info, "SIGPIPE...");
 }
 
 CMainLoop::CMainLoop()
@@ -21,24 +21,24 @@ CMainLoop::~CMainLoop()
 
 void CMainLoop::Init()
 {
-	CEpoll* pSelector = new CEpoll();
-	znb::Globals::SetSelector(pSelector);
+    CEpoll* pSelector = new CEpoll();
+    znb::Globals::SetSelector(pSelector);
 
-	CTimerMgr* pTimerMgr = new CTimerMgr();
-	pTimerMgr->Init(pSelector);
-	znb::Globals::SetTimerMgr(pTimerMgr);
+    CTimerMgr* pTimerMgr = new CTimerMgr();
+    pTimerMgr->Init(pSelector);
+    znb::Globals::SetTimerMgr(pTimerMgr);
 
-	// 全局时间对象
-	CEnvTimer* pEnvTimer = new CEnvTimer();
-	znb::Globals::SetEnvTimer(pEnvTimer);
+    // 全局时间对象
+    CEnvTimer* pEnvTimer = new CEnvTimer();
+    znb::Globals::SetEnvTimer(pEnvTimer);
 
-	// 捕捉SIGPIPE信号
-	signal(SIGPIPE, sig_pipe);
+    // 捕捉SIGPIPE信号
+    signal(SIGPIPE, sig_pipe);
 }
 
 void CMainLoop::Start()
 {
-	znb::Globals::GetEpoll()->netEpollRun();
+    znb::Globals::GetEpoll()->netEpollRun();
 }
 
 void CMainLoop::Stop()

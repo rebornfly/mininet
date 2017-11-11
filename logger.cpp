@@ -2,46 +2,46 @@
 #include <cassert>
 #include "logger.h"
 
-//æ—¥å¿—çº§åˆ«æ§åˆ¶å˜é‡ï¼Œè¯¥å˜é‡æŒ‡å‘å…±äº«å†…å­˜ã€‚è¯¥å†…å­˜çš„å€¼ç”±å…¶ä»–è¿›ç¨‹ä¿®æ”¹ã€‚
+//ÈÕÖ¾¼¶±ğ¿ØÖÆ±äÁ¿£¬¸Ã±äÁ¿Ö¸Ïò¹²ÏíÄÚ´æ¡£¸ÃÄÚ´æµÄÖµÓÉÆäËû½ø³ÌĞŞ¸Ä¡£
 int *g_pshmLogLevel = NULL;
 
 int *g_pSuggestedLevel = NULL;
-int g_uEpollThr = 65535; //è¶³å¤Ÿå¤§äº†
+int g_uEpollThr = 65535; //×ã¹»´óÁË
 
 zlog_category_t* category1 = NULL;
 zlog_category_t* category2 = NULL;
-//æ£€æµ‹æ˜¯å¦è¾“å‡ºæ—¥å¿—
+//¼ì²âÊÇ·ñÊä³öÈÕÖ¾
 #define IS_NOT_DISPLAY_LOG(value)   ( (g_pshmLogLevel != NULL) && (value > *g_pshmLogLevel) )
 
 static bool bDiskFull = false;
 
 static int zlogLevel[] =
 {
-	ZLOG_LEVEL_FATAL,
-	ZLOG_LEVEL_ERROR,
-	ZLOG_LEVEL_ERROR,
-	ZLOG_LEVEL_ERROR,
-	ZLOG_LEVEL_WARN,
-	ZLOG_LEVEL_NOTICE,
-	ZLOG_LEVEL_INFO,
-	ZLOG_LEVEL_DEBUG
+    ZLOG_LEVEL_FATAL,
+    ZLOG_LEVEL_ERROR,
+    ZLOG_LEVEL_ERROR,
+    ZLOG_LEVEL_ERROR,
+    ZLOG_LEVEL_WARN,
+    ZLOG_LEVEL_NOTICE,
+    ZLOG_LEVEL_INFO,
+    ZLOG_LEVEL_DEBUG
 };
 
 
 void initLog(const char *confpath, const char *cname,const char* cname1, const char* cname2)
 {
-	dzlog_init(confpath, cname);
+    dzlog_init(confpath, cname);
 
-	// Find log file path from category
-	zlog_category_t* c = zlog_get_category((char *)cname);
+    // Find log file path from category
+    zlog_category_t* c = zlog_get_category((char *)cname);
 
     category1 = zlog_get_category((char *)cname1);
     category2 = zlog_get_category((char *)cname2);
 
-	zc_arraylist_t* a_list = c->fit_rules;
-	assert(a_list->len == 1);
+    zc_arraylist_t* a_list = c->fit_rules;
+    assert(a_list->len == 1);
 
-	//zlog_rule_t* a_rule = (zlog_rule_t *)a_list->array[0];
+    //zlog_rule_t* a_rule = (zlog_rule_t *)a_list->array[0];
 }
 
 
@@ -49,20 +49,20 @@ void initLog(const char *confpath, const char *cname,const char* cname1, const c
 
 void log(int l, const char *fmt, ...)
 {
-	if (bDiskFull)
-		return;
+    if (bDiskFull)
+        return;
 
-	va_list		param;
-	{
-		va_start(param, fmt);
-		int rc = vdzlog(__FILE__, sizeof(__FILE__)-1, __func__, sizeof(__func__)-1, __LINE__, zlogLevel[l], fmt, param);
-		if (rc == -1 && errno == ENOSPC)
-		{
-			// ç£ç›˜ç©ºé—´æ»¡ï¼Œåç»­æ—¥å¿—è°ƒç”¨æš‚åœ
-			bDiskFull = true;
-		}
-	}
-	va_end(param);
+    va_list        param;
+    {
+        va_start(param, fmt);
+        int rc = vdzlog(__FILE__, sizeof(__FILE__)-1, __func__, sizeof(__func__)-1, __LINE__, zlogLevel[l], fmt, param);
+        if (rc == -1 && errno == ENOSPC)
+        {
+            // ´ÅÅÌ¿Õ¼äÂú£¬ºóĞøÈÕÖ¾µ÷ÓÃÔİÍ£
+            bDiskFull = true;
+        }
+    }
+    va_end(param);
 }
 
 void OUTLOG(INTERFACE_LOG& outLog, uint32_t stat)
@@ -78,35 +78,35 @@ void INLOG(INTERFACE_LOG& inLog)
 
 void outputLog(int l, const char *fmt, ...)
 {
-	va_list	param;
+    va_list    param;
 
     va_start(param, fmt);
     vzlog(category1, __FILE__, sizeof(__FILE__)-1, __func__, sizeof(__func__)-1, __LINE__, zlogLevel[l], fmt, param);
   
-	va_end(param);
+    va_end(param);
 }
 
 void logPriceInfo(int l, const char *fmt, ...)
 {
-	va_list	param;
+    va_list    param;
 
     va_start(param, fmt);
     vzlog(category2, __FILE__, sizeof(__FILE__)-1, __func__, sizeof(__func__)-1, __LINE__, zlogLevel[l], fmt, param);
   
-	va_end(param);
+    va_end(param);
 }
 uint64_t getTimeMs()
 {
-	struct timeval tmpTm;
-	gettimeofday(&tmpTm, NULL);
+    struct timeval tmpTm;
+    gettimeofday(&tmpTm, NULL);
 
-	return (uint64_t)(tmpTm.tv_sec * 1000000 + tmpTm.tv_usec)/1000;
+    return (uint64_t)(tmpTm.tv_sec * 1000000 + tmpTm.tv_usec)/1000;
 }
 
 
 char *ip2str(uint32_t ip)
 {
-	union ip_addr{
+    union ip_addr{
 uint32_t addr;
 uint8_t s[4];
 } a;

@@ -15,18 +15,18 @@ TcpServer::TcpServer(uint32_t port)
 
 void TcpServer::startServer()
 {
-//		m_fd = CNetSocketHelp::initListenSockfd(uport);
-		acceptor->listen();
-		log(Info, "TcpServer::startServer...... " );
+//        m_fd = CNetSocketHelp::initListenSockfd(uport);
+        acceptor->listen();
+        log(Info, "TcpServer::startServer...... " );
 }
 
 /*()void TcpServer::onRead()
 {
-	//监听套接字事件
-	if(getLinkHandler())
-	{
-		getLinkHandler()->onAccept(getEpoll(), m_fd, getDataHandler());
-	}
+    //监听套接字事件
+    if(getLinkHandler())
+    {
+        getLinkHandler()->onAccept(getEpoll(), m_fd, getDataHandler());
+    }
 }
 */
 void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
@@ -55,32 +55,32 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
       boost::bind(&TcpServer::removeConnection, this, _1)); // FIXME: unsafe
   ioLoop->runInLoop(boost::bind(&TcpConnection::connectEstablished, conn)); */
 /*char addr[256];
-	socklen_t len = 256;
-	int m_so = ::accept(sockfd, (struct sockaddr*)&addr, &len);
-	if(m_so == -1)
-	{
-		log(Error, " accept fd:so [%u] err:%s",  sockfd, strerror(errno));
-		return;
-	}
+    socklen_t len = 256;
+    int m_so = ::accept(sockfd, (struct sockaddr*)&addr, &len);
+    if(m_so == -1)
+    {
+        log(Error, " accept fd:so [%u] err:%s",  sockfd, strerror(errno));
+        return;
+    }
 
-	if( fcntl(m_so, F_SETFL, fcntl(m_so, F_GETFD, 0)|O_NONBLOCK) == -1 )
-	{
-		log(Error, "[onAccept]  set [ %u ] nonblock err:%s", m_so, strerror(errno));
-		return;
-	}
-	
-	struct sockaddr_in* addrsock = (struct sockaddr_in*)addr;
+    if( fcntl(m_so, F_SETFL, fcntl(m_so, F_GETFD, 0)|O_NONBLOCK) == -1 )
+    {
+        log(Error, "[onAccept]  set [ %u ] nonblock err:%s", m_so, strerror(errno));
+        return;
+    }
+    
+    struct sockaddr_in* addrsock = (struct sockaddr_in*)addr;
 */
     string name = peerAddr.toIpPort();
-	TcpConnPtr conn(new CTcpConn(Globals::GetEpoll(), sockfd, inet_ntoa(peerAddr.addr_.sin_addr), ntohs(peerAddr.addr_.sin_port),  getDataHandler()));
-	
+    TcpConnPtr conn(new CTcpConn(Globals::GetEpoll(), sockfd, inet_ntoa(peerAddr.addr_.sin_addr), ntohs(peerAddr.addr_.sin_port),  getDataHandler()));
+    
     connections[name] = conn;
 
-	conn->setConnStat(ENUM_STATE_CONNECTED);
+    conn->setConnStat(ENUM_STATE_CONNECTED);
     conn->setCloseCallback(
       boost::bind(&TcpServer::removeConnection, this, _1));
 
-	log(Info, "[onAccept] Accept from:%s : %u sockid:%u ", inet_ntoa(peerAddr.addr_.sin_addr), peerAddr.addr_.sin_port, sockfd);
+    log(Info, "[onAccept] Accept from:%s : %u sockid:%u ", inet_ntoa(peerAddr.addr_.sin_addr), peerAddr.addr_.sin_port, sockfd);
 }
 
 void TcpServer::removeConnection(const TcpConnPtr& conn)
