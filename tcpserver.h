@@ -140,7 +140,8 @@ namespace znb
 				pConn->setEpoll(pE);
 
 				pConn->getEpoll()->netEpollAdd(pConn, EPOLL_READABLE);
-			
+
+			
 				log(Info, "Connect to %s:%u success", ip, uport);
 */
 				return pConn;
@@ -174,7 +175,7 @@ namespace znb
 
             std::tr1::unordered_map<string, TcpConnPtr> connections;
 
-//            CEpoll* ep;
+//          CEpoll* ep;
 	
 	};
 }
