@@ -2,15 +2,15 @@
 #include <cassert>
 #include "logger.h"
 
-//ÈÕÖ¾¼¶±ğ¿ØÖÆ±äÁ¿£¬¸Ã±äÁ¿Ö¸Ïò¹²ÏíÄÚ´æ¡£¸ÃÄÚ´æµÄÖµÓÉÆäËû½ø³ÌĞŞ¸Ä¡£
+//æ—¥å¿—çº§åˆ«æ§åˆ¶å˜é‡ï¼Œè¯¥å˜é‡æŒ‡å‘å…±äº«å†…å­˜ã€‚è¯¥å†…å­˜çš„å€¼ç”±å…¶ä»–è¿›ç¨‹ä¿®æ”¹ã€‚
 int *g_pshmLogLevel = NULL;
 
 int *g_pSuggestedLevel = NULL;
-int g_uEpollThr = 65535; //×ã¹»´óÁË
+int g_uEpollThr = 65535; //è¶³å¤Ÿå¤§äº†
 
 zlog_category_t* category1 = NULL;
 zlog_category_t* category2 = NULL;
-//¼ì²âÊÇ·ñÊä³öÈÕÖ¾
+//æ£€æµ‹æ˜¯å¦è¾“å‡ºæ—¥å¿—
 #define IS_NOT_DISPLAY_LOG(value)   ( (g_pshmLogLevel != NULL) && (value > *g_pshmLogLevel) )
 
 static bool bDiskFull = false;
@@ -58,7 +58,7 @@ void log(int l, const char *fmt, ...)
 		int rc = vdzlog(__FILE__, sizeof(__FILE__)-1, __func__, sizeof(__func__)-1, __LINE__, zlogLevel[l], fmt, param);
 		if (rc == -1 && errno == ENOSPC)
 		{
-			// ´ÅÅÌ¿Õ¼äÂú£¬ºóĞøÈÕÖ¾µ÷ÓÃÔİÍ£
+			// ç£ç›˜ç©ºé—´æ»¡ï¼Œåç»­æ—¥å¿—è°ƒç”¨æš‚åœ
 			bDiskFull = true;
 		}
 	}
