@@ -13,51 +13,51 @@ namespace znb
 	class ITimer
 	{
 	public:
-		virtual ~ITimer() {}
-		virtual void OnTimer() = 0;
+	    virtual ~ITimer() {}
+	    virtual void OnTimer() = 0;
 	};
 
 	class CTimerMgr 
 	{
 	public:
-		CTimerMgr();
-		~CTimerMgr();
+	    CTimerMgr();
+	    ~CTimerMgr();
 
 	public:
-		virtual void onRead();
-        virtual void onWrite(){}
-        virtual void onError(){}
+	    virtual void onRead();
+            virtual void onWrite(){}
+            virtual void onError(){}
 
-		void Init(CEpoll* selector);
-		void AddTimeout(ITimer* p, int msecs);
-		void RemoveTimeout(ITimer* p);
-
-	private:
-		void __ResetTimer();
-		void __OnTimer();
-		void __CheckTimeout();
+	    void Init(CEpoll* selector);
+	    void AddTimeout(ITimer* p, int msecs);
+	    void RemoveTimeout(ITimer* p);
 
 	private:
-		bool m_bInCallback;
-		struct timeval m_tvNow;
+	    void __ResetTimer();
+	    void __OnTimer();
+	    void __CheckTimeout();
 
-		struct TimerStruct
-		{
+	private:
+	    bool m_bInCallback;
+	    struct timeval m_tvNow;
+
+	    struct TimerStruct
+	    {
 		public:
-			TimerStruct(ITimer* p, const struct timeval& tv)
-			: obj(p), tmo(tv)
-			{
-			}
+		    TimerStruct(ITimer* p, const struct timeval& tv)
+		    : obj(p), tmo(tv)
+		    {
+		    }
 
 		public:
-			ITimer* obj;
-			struct timeval tmo;
-		};
+		    ITimer* obj;
+		    struct timeval tmo;
+	     };
 
-		boost::mutex m_lstLock;
-		std::list<TimerStruct> m_lstTimers;
-        int m_timerfd;
-        boost::scoped_ptr<CEvSource> ev;
+	     boost::mutex m_lstLock;
+	     std::list<TimerStruct> m_lstTimers;
+             int m_timerfd;
+             boost::scoped_ptr<CEvSource> ev;
 	};
 }
 
