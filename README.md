@@ -1,7 +1,8 @@
-mininet 是一个基于epoll的高性能网络框架库
+mininet 是一个基于epoll的轻量高性能网络框架库, 其主要的特点：
+* 智能指针管理链接生命周期
+* 使用bind+function做回调，松耦合
+* 工作线程回包采用，event_fd通知网络线程
 
-一下是一个 接入服务器模型，并且在实际中得到了应用
-![baidu](www.baidu.com)
 
 ```C++
 int main(int sz, char* argc[])
