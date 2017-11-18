@@ -85,7 +85,7 @@ enum LogLevel
 };
 
 char *ip2str(uint32_t ip);
-void initLog(const char *confpath, const char *cname, const char* cname1, const char* cname2);
+void initLog(const char *confpath, const char *cname);
 void log(int l, const char *format,...) __attribute__((format(printf,2,3)));
 void outputLog(int l, const char *fmt, ...) __attribute__((format(printf,2,3)));
 void logPriceInfo(int l, const char *fmt, ...);

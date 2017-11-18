@@ -9,7 +9,7 @@
 #include <vector>
 #include <boost/function.hpp>
 #include "logger.h"
-#include "../common/znb_thread.h"
+#include "thread.h"
 
 
 
@@ -87,13 +87,13 @@ namespace znb
 
             int m_eventFd;
 
-            WakeupEvent* wakeupEv;
-
             bool m_bcallingPendingFunctors;
     
             bool m_bStop;
 
             Mutex m_mutex;
+
+            WakeupEvent* wakeupEv;
     };
 }
 #endif

@@ -4,7 +4,7 @@
 #include "request_dispatch.h"
 #include <deque>
 #include "net_conn.h"
-#include "../common/znb_thread.h"
+#include "thread.h"
 
 using namespace google::protobuf;
 
@@ -24,16 +24,14 @@ namespace znb
 
         struct RequestType
         {    
-            RequestType(TcpConnPtr pConn, Message* pMsg, uint32_t uCmd, uint32_t uRequestId, uint64_t uUid, BaseEntry* pEntry):
+            RequestType(TcpConnPtr pConn, Message* pMsg, uint32_t uCmd, BaseEntry* pEntry):
             conn(pConn),
             msg(pMsg),
             cmd(uCmd),
-            requestId(uRequestId),
-            uid(uUid),
             entry(pEntry)
             {
             }
-            RequestType():msg(NULL),cmd(0),requestId(0),uid(0),entry(NULL)
+            RequestType():msg(NULL),cmd(0),entry(NULL)
             {
             }
             void operator= (RequestType& r)             
@@ -41,8 +39,6 @@ namespace znb
                 conn      = r.conn;    
                 msg       = r.msg;        
                 cmd       = r.cmd;    
-                requestId = r.requestId;
-                uid       = r.uid;
                 entry     = r.entry;                
             }
             void operator= (const RequestType& r) 
@@ -50,15 +46,11 @@ namespace znb
                 conn      = r.conn;    
                 msg       = r.msg;        
                 cmd       = r.cmd;    
-                requestId = r.requestId;    
-                uid       = r.uid;
                 entry     = r.entry;                
             }
             TcpConnPtr     conn;
             Message*      msg;
             uint32_t      cmd;
-            uint32_t     requestId;
-            uint64_t     uid;
             BaseEntry*     entry;
         };    
         
@@ -116,9 +108,9 @@ namespace znb
         
         
         void dispatcherToWorkers(google::protobuf::Message* msg,
-                        BaseEntry* entry, uint32_t cmd, uint32_t requestId, uint64_t uid,  const TcpConnPtr& conn);
+                        BaseEntry* entry, uint32_t cmd,  const TcpConnPtr& conn);
         
-        virtual    void requestDispatch(const char* pData, uint32_t size, uint32_t cmd, uint32_t requestId, uint64_t uid64, const TcpConnPtr& conn);
+        virtual    void requestDispatch(const char* pData, uint32_t size, uint32_t cmd, const TcpConnPtr& conn);
         
         typedef std::vector<Worker*> Workers;
         

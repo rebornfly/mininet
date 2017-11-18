@@ -1,0 +1,13 @@
+/*
+ * 友情链接
+ * @author zdjray@2015/06/01
+ * @project backendserver
+ */
+
+message TestReq {
+    optional string name = 1;
+}
+
+message TestRsp {
+    optional string res = 1;
+}

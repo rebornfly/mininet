@@ -5,9 +5,9 @@ using namespace znb;
 
 CEpoll::CEpoll():
 m_eventFd(createEventFd()),
-wakeupEv(new WakeupEvent(m_eventFd)),
 m_bcallingPendingFunctors(false),
-m_bStop(false)
+m_bStop(false),
+wakeupEv(new WakeupEvent(m_eventFd, this))
 {
     m_epfd = epoll_create(1024);
     if(m_epfd == -1)
@@ -15,12 +15,11 @@ m_bStop(false)
         log(Error, "epoll create :%s", strerror(errno));    
         abort();
     }
-
-    netEpollAdd(wakeupEv, EPOLL_READABLE);
-    log(Info, "[TEST::CEpoll]::create eventfd:%u", m_eventFd);
+    wakeupEv->readyReading();
+    wakeupEv->setReadCallback();
 }
 CEpoll::~CEpoll()
-{    
+{
     ::close(m_epfd);
     ::close(m_eventFd);
 }
@@ -49,11 +48,11 @@ int CEpoll::netEpollAdd(CEvSource* pEv, int mask)
     if(op == EPOLL_CTL_ADD) m_setEv.insert(pEv);
     pEv->setCurrentMask(mask);
 
-    log(Warn, "[TEST::netEpollAdd] es:%p, op:%u, mask:%u, fd:%d", pEv, op, mask, pEv->getFd());
+    log(Warn, "[netEpollAdd] es:%p, op:%u, mask:%u, fd:%d", pEv, op, mask, pEv->getFd());
 
     if(epoll_ctl(m_epfd, op, pEv->getFd(), &es) == -1)
     {
-        log(Error, "[netEpollAdd]epoll_ctrl es:%p, op:%u err:%s", pEv, op, strerror(errno));
+        log(Error, "[netEpollAdd] epoll_ctrl es:%p|%d, op:%u err:%s", pEv, pEv->getFd(),  op, strerror(errno));
         return NET_ERR;
     }
     
@@ -105,6 +104,7 @@ int CEpoll::netEpollDel(CEvSource* pEv , int mask)
 
 void CEpoll::netEpollRun()
 {
+    log(Info, "Epoll start running ....");
     epoll_event events[1024];
     while (!m_bStop)
     {
@@ -114,7 +114,6 @@ void CEpoll::netEpollRun()
             log(Warn, "epoll_wait err:%s", strerror(errno));
             continue;
         }
-        
         for(int i = 0; i < waits; i++)
         {
             CEvSource* ev = (CEvSource* )events[i].data.ptr;
@@ -130,21 +129,16 @@ void CEpoll::netEpollRun()
             {
                 if (ev->errorCallback_) ev->errorCallback_();
             }
-            
+
         }
-        
         // 
-        if (!m_rmSet.empty())        
+        if (!m_rmSet.empty())
         {
             for (std::set<CEvSource*>::iterator it = m_rmSet.begin(); it != m_rmSet.end(); )
-            {            
+            {
                 CEvSource* es = *it;    
-            //    if(es->getEventType() == ENUM_TYPE_CONN)
-            //    {
-                    log(Warn, "[netEpollRunNEW] erase fd:%u--%p from epoll", es->getFd(), es);
-                //    delete es;
-                    m_rmSet.erase(it++);
-            //    }
+                log(Warn, "[netEpollRun] erase fd:%u--%p from epoll", es->getFd(), es);
+                m_rmSet.erase(it++);
             }
         
         }
@@ -191,7 +185,7 @@ void CEpoll::wakeup()
     uint64_t u = 1;
 
     ssize_t flag = ::write(m_eventFd, &u, sizeof(uint64_t));
-    log(Info, "[TEST::wakeup] m_eventFd:%u", m_eventFd);
+//    log(Info, "[TEST::wakeup] m_eventFd:%u", m_eventFd);
     if(flag != sizeof(uint64_t))
     {
         log(Error, "[CEpoll::wakeup] flag:%lu, err:%s", flag ,strerror(errno));
@@ -227,5 +221,5 @@ void CEpoll::pushFuctor( Functor& fun)
     {
         wakeup();
     }
-    log(Info, "[pushFunctors] tid:%u", (unsigned int)pthread_self());
+    //log(Info, "[pushFunctors] tid:%u|%d", (unsigned int)pthread_self(), m_bStop);
 }

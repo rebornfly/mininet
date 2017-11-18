@@ -14,7 +14,7 @@ class IAppContextEx
 {
 public:
     virtual ~IAppContextEx() {};
-    virtual void requestDispatch(const char* data, uint32_t size, uint32_t cmd, uint32_t requestId, uint64_t uid, const TcpConnPtr& conn) = 0;
+    virtual void requestDispatch(const char* data, uint32_t size, uint32_t cmd,  const TcpConnPtr& conn) = 0;
 };
 
 class BaseEntry
@@ -23,18 +23,18 @@ public:
     virtual ~BaseEntry() {}    
 public:    
 
-    virtual void handleRequest(const char* data, uint32_t size, uint32_t cmd, uint32_t requestId, const TcpConnPtr& conn, uint64_t uid64) = 0;    
+    virtual void handleRequest(const char* data, uint32_t size, uint32_t cmd, const TcpConnPtr& conn ) = 0;    
     
-    virtual google::protobuf::Message* unPack(const char* data, uint32_t size, uint32_t cmd, uint32_t requestId, const TcpConnPtr& conn) = 0;    
+    virtual google::protobuf::Message* unPack(const char* data, uint32_t size, uint32_t cmd,  const TcpConnPtr& conn) = 0;    
     //多线程使用
-    virtual void handleMessage(google::protobuf::Message* msg, uint32_t cmd, uint32_t requestId, const TcpConnPtr& conn, uint64_t uid64) = 0;
+    virtual void handleMessage(google::protobuf::Message* msg, uint32_t cmd, const TcpConnPtr& conn) = 0;
 };
 
 template<class ObjClass, class MsgType>
 class RequestEntry : public BaseEntry
 {
 public:
-    typedef void (ObjClass::*PFUN)(MsgType* msg, uint32_t cmd, uint32_t requestId, const TcpConnPtr& conn, uint64_t uid64 );
+    typedef void (ObjClass::*PFUN)(MsgType* msg, uint32_t cmd, const TcpConnPtr& conn);
 
     RequestEntry(ObjClass* obj, PFUN pf):
     pObj(obj)
@@ -44,50 +44,50 @@ public:
 
     ~RequestEntry(){}
 
-    void handleRequest(const char* data, uint32_t size,  uint32_t cmd, uint32_t requestId, const TcpConnPtr& conn, uint64_t uid64)
+    void handleRequest(const char* data, uint32_t size,  uint32_t cmd, const TcpConnPtr& conn)
     {
         
         MsgType msg;
     
         try
         {    
-            log(Info, "handleRequest cmd:%u, size:%u", cmd, size);
+            //log(Info, "handleRequest cmd:%u, size:%u", cmd, size);
             //msg.ParseFromString(strMsg);
             msg.ParseFromArray(data, size);
-            (pObj->*m_pfun)(&msg, cmd, requestId, conn,  uid64 );
+            (pObj->*m_pfun)(&msg, cmd, conn );
         }
         catch(...)
         {
             log(Error, "[handleRequest] decode msg error cmd:%u, raw string:%s", cmd, data);
         
-            conn->sendError(cmd, requestId, 1);
+            conn->sendError(cmd, 1);
         }
     }
 
-    virtual google::protobuf::Message* unPack(const char* data, uint32_t size, uint32_t cmd, uint32_t requestId,  const TcpConnPtr& conn) 
+    virtual google::protobuf::Message* unPack(const char* data, uint32_t size, uint32_t cmd, const TcpConnPtr& conn) 
     {
         MsgType* msg = new MsgType;
         
         try
         {
             //msg->ParseFromString(strMsg);
-            msg.ParseFromArray(data, size);
+            msg->ParseFromArray(data, size);
             return msg;
         }
         catch(...)
         {
             log(Error, "[unPack] decode msg error cmd:%u, raw string:%s", cmd, data);
 
-            conn->sendError(cmd, requestId, 1);
+            conn->sendError(cmd,  1);
             
             return NULL;
         }
     }    
 
-    void  handleMessage(google::protobuf::Message* msg, uint32_t cmd, uint32_t requestId, const TcpConnPtr& conn, uint64_t uid64 )
+    void  handleMessage(google::protobuf::Message* msg, uint32_t cmd, const TcpConnPtr& conn )
     {
         MsgType* pMsg = static_cast<MsgType *>(msg);
-        (pObj->*m_pfun)(pMsg, cmd, requestId, conn,  uid64 );
+        (pObj->*m_pfun)(pMsg, cmd,  conn);
     }
 
 
@@ -104,7 +104,7 @@ public:
     ~RequestMfcMap();
     //
     template<class ObjClass, class MsgType>
-    void addRequestMap(ObjClass* pObj, uint32_t cmd, void (ObjClass::*pfun)(MsgType* msg, uint32_t cmd, uint32_t requestId, const TcpConnPtr& conn, uint64_t uid64 ))
+    void addRequestMap(ObjClass* pObj, uint32_t cmd, void (ObjClass::*pfun)(MsgType* msg, uint32_t cmd,  const TcpConnPtr& conn ))
     {
         std::map<uint32_t ,BaseEntry*>::iterator it = m_mapCmdToEntry.find(cmd);
         if(it != m_mapCmdToEntry.end())
@@ -117,7 +117,7 @@ public:
         m_mapCmdToEntry[cmd] = msgEntry;
     }
     
-    virtual    void requestDispatch(const char* pData, uint32_t size, uint32_t cmd, uint32_t requestId, uint64_t uid64, const TcpConnPtr& conn);
+    virtual  void requestDispatch(const char* pData, uint32_t size, uint32_t cmd, const TcpConnPtr& conn);
 protected:
 
     std::map<uint32_t, BaseEntry *> m_mapCmdToEntry;

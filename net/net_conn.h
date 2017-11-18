@@ -6,11 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <google/protobuf/message.h>
-#include <boost/bind.hpp>
-#include <boost/noncopyable.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <execinfo.h>
 #include "event_source.h"
 #include "socket_buffer.h"
 
@@ -34,6 +30,33 @@ namespace znb
     inline uint64_t XHTONLL(uint64_t i64) {    
         return ((uint64_t(XHTONL((uint32_t)i64)) << 32) |XHTONL((uint32_t(i64>>32))));
     }
+    class Socket_Exception : public exception
+    {
+    public:
+        Socket_Exception(const string &sBuffer) : _buffer(sBuffer){}
+
+        const char* what() const throw()
+        {
+             return _buffer.c_str();
+        }
+        void getBacktrace()
+        {
+            void * array[64];
+            int nSize = backtrace(array, 64);
+            char ** symbols = backtrace_symbols(array, nSize);
+
+            for (int i = 0; i < nSize; i++)
+            {
+                _buffer += symbols[i];
+                _buffer += "\n";
+            }
+            free(symbols);
+        }
+
+        ~Socket_Exception() throw(){}    
+    private:
+        string  _buffer;
+    };
     
             
     inline std::string addr_ntoa(u_long ip)
@@ -114,6 +137,7 @@ namespace znb
             void filterRead(char* data, size_t size)
             {
             }
+            void setBlocking(bool bBlock);
 
             void onRead();
             void onWrite();
@@ -124,13 +148,13 @@ namespace znb
             //此处可以解密数据， 如果是空的话就是传输明文， 可以重新解密规则，https？ 各位爷
             virtual void decryptData(){};
 
-            void send(const char* data, uint32_t len);
+            void sendBin(const char* data, uint32_t len);
 
-            void send(std::string& strMsg, uint32_t cmd, uint32_t requestId, uint64_t uid64);
+            void send(std::string& strMsg, uint32_t cmd );
             /*客户端连接服务端回包接口*/
-            void sendResponse(google::protobuf::Message& msg, uint32_t cmd, uint32_t requestId, uint64_t uid64);
+            void sendResponse(google::protobuf::Message& msg, uint32_t cmd );
             
-            void sendError(uint32_t cmd, uint32_t requestId, uint8_t error);    
+            void sendError(uint32_t cmd, uint8_t error);    
 
         private:
                 
@@ -156,7 +180,6 @@ namespace znb
             int fd;
 
             boost::scoped_ptr<CEvSource> ev;
-                    
     };
 
     typedef boost::shared_ptr<CTcpConn> TcpConnPtr;

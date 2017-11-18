@@ -28,18 +28,18 @@ static int zlogLevel[] =
 };
 
 
-void initLog(const char *confpath, const char *cname,const char* cname1, const char* cname2)
+void initLog(const char *confpath, const char *cname)
 {
     dzlog_init(confpath, cname);
 
     // Find log file path from category
-    zlog_category_t* c = zlog_get_category((char *)cname);
+    //zlog_category_t* c = zlog_get_category((char *)cname);
 
-    category1 = zlog_get_category((char *)cname1);
-    category2 = zlog_get_category((char *)cname2);
+    //category1 = zlog_get_category((char *)cname1);
+    //category2 = zlog_get_category((char *)cname2);
 
-    zc_arraylist_t* a_list = c->fit_rules;
-    assert(a_list->len == 1);
+    //zc_arraylist_t* a_list = c->fit_rules;
+    //assert(a_list->len == 1);
 
     //zlog_rule_t* a_rule = (zlog_rule_t *)a_list->array[0];
 }

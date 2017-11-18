@@ -3,11 +3,16 @@
 
 #include <google/protobuf/message.h>
 #include <boost/function.hpp>
+#include <boost/bind.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include "net_epoll.h"
 #include "logger.h"
-#include "../common/znb_thread.h"
+#include "thread.h"
 
-#define HEADER_SIZE 24
+#define HEADER_SIZE 8
 namespace znb 
 {
     /** @defgroup 网络框架库
@@ -119,14 +124,14 @@ namespace znb
     /*
      *   唤醒I/O线程事件源
     */
-    class WakeupEvent : public CEvSource
+    class WakeupEvent
     {
     public:
         WakeupEvent()
         {
         }
 
-        explicit WakeupEvent(int m_so):CEvSource(m_so)
+        WakeupEvent(int so, CEpoll* ep):ev(new CEvSource(so, ep))
         {
         }
 
@@ -134,22 +139,28 @@ namespace znb
         {
 
         }
-        virtual void onRead() 
+        void handleRead()
         {
             uint64_t one = 1;
-            ssize_t n = ::read(getFd(), &one, sizeof one);
+            ssize_t n = ::read(ev->getFd(), &one, sizeof one);
             if (n != sizeof one)
             {
                  log(Error, "WakeupEvent::onRead read %lu bytes instead of 8", n);
             }
-            log(Error, "WakeupEvent::onRead read %lu bytes instead of 8", n);
+            //log(Error, "WakeupEvent::onRead read %lu bytes instead of 8", n);
         }
-        virtual void onWrite() 
+
+        void readyReading()
         {
+            ev->getEpoll()->netEpollAdd(ev.get(), EPOLL_READABLE);
         }
-        virtual void onError() 
+
+        void setReadCallback()
         {
+            ev->setReadCallback(boost::bind(&WakeupEvent::handleRead, this));
         }
+    private:
+        boost::scoped_ptr<CEvSource> ev;
 
     };
 
@@ -160,46 +171,6 @@ namespace znb
         ENUM_STATE_CONNECTED
     };
 
-    class IConn : public CEvSource
-    {
-    public:
-        IConn()
-        {
-
-        }
-        explicit IConn(uint32_t m_so):CEvSource(m_so)
-        {
-
-        }
-        virtual ~IConn()
-        {
-        }
-        void setConnStat(ConnectStat stat)
-        {
-            m_stat = stat;
-        }
-
-        ConnectStat getConnStat()
-        {
-            return m_stat;
-        }
-
-        virtual void onRead() = 0;
-        virtual void onWrite() = 0;
-        virtual void onError() = 0;
-        
-        virtual uint32_t getPeerPort() = 0;
-        virtual uint32_t getPeerIp() = 0;
-
-        virtual void send(std::string& strMsg, uint32_t cmd, uint32_t requestId, uint64_t uid64) = 0;
-        virtual void sendResponse(google::protobuf::Message& msg, uint32_t cmd, uint32_t requestId, uint64_t uid64) = 0;
-        virtual void sendError(uint32_t cmd, uint32_t requestId, uint8_t error) = 0;
-    protected:
-
-        uint32_t m_uConnId;
-
-        ConnectStat m_stat;
-    };
     class CTcpConn;
     class IDataHandler
     {

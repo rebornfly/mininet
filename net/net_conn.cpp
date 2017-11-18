@@ -130,20 +130,20 @@ Retry:
     return rc;
 }
 
-void CTcpConn::sendResponse(google::protobuf::Message& msg, uint32_t cmd, uint32_t requestId, uint64_t uid64)
+void CTcpConn::sendResponse(google::protobuf::Message& msg, uint32_t cmd )
 {
     std::string strMsg;
-    
+
     msg.SerializeToString(&strMsg);
 
-    CEpoll::Functor f = boost::bind(&CTcpConn::send, this, strMsg, cmd, requestId, uid64);
+    CEpoll::Functor f = boost::bind(&CTcpConn::send, this, strMsg, cmd);
 
     ev->getEpoll()->pushFuctor(f);
 
 //    sendResponse(strMsg, cmd, requestId, uid64);
 }
 
-void CTcpConn::send(std::string& strMsg, uint32_t cmd, uint32_t requestId, uint64_t uid64)
+void CTcpConn::send(std::string& strMsg, uint32_t cmd )
 {
     if(getConnStat() == ENUM_STATE_NONE)
     {
@@ -153,44 +153,26 @@ void CTcpConn::send(std::string& strMsg, uint32_t cmd, uint32_t requestId, uint6
     int len = strMsg.size();
 
     char data[HEADER_SIZE  + len];
-    
-    uint32_t size = XHTONL(len);
-    
-    uint32_t cmdNet = XHTONL(cmd);
-    
-    uint32_t requestIdNet = XHTONL(requestId);
 
-    uint64_t uidNet = XHTONLL(uid64);
-    
+    uint32_t size = XHTONL(len);
+
+    uint32_t cmdNet = XHTONL(cmd);
+
     uint32_t count = 0;
 
-    data[count++] =  0;   //0
-    
-    data[count++] =  255; //1
-    
-    data[count++] = 21;   //2
-
-    memcpy(data + count, (const char*)(&size), 4);  //3  
-    count += 4;                                       
+    memcpy(data + count, (const char*)(&size), 4);  //3
+    count += 4;
 
     memcpy(data + count, (const char*)(&cmdNet), 4); //7
     count += 4;
 
-    memcpy(data + count, (const char*)(&requestIdNet), 4); //11
-    count += 4;
-
-    data[count++] = 0;   //15
-    
-    memcpy(data + count, (const char*)(&uidNet), 8);  //24
-    count += 8;
-
     memcpy(data + count, strMsg.c_str(), strMsg.size());
 
-    send(data, HEADER_SIZE + len);
-    
+    sendBin(data, HEADER_SIZE + len);
+
 }
 
-void CTcpConn::sendError(uint32_t cmd, uint32_t requestId,  uint8_t error)
+void CTcpConn::sendError(uint32_t cmd, uint8_t error)
 {
     if(getConnStat() == ENUM_STATE_NONE)
     {
@@ -201,31 +183,17 @@ void CTcpConn::sendError(uint32_t cmd, uint32_t requestId,  uint8_t error)
 
     char data[HEADER_SIZE];
 
-
     uint32_t cmdNet = XHTONL(cmd);
 
-    uint32_t requestIdNet = XHTONL(requestId);
-    
+    memcpy(data , (const char*)(&len), 4);
 
-    data[0] =  0;
+    memcpy(data + 4, (const char*)(&cmdNet), 4);
 
-    data[1] =  255;
-
-    memcpy(data + 2, (const char*)(&len), 4);
-
-    memcpy(data + 6, (const char*)(&cmdNet), 4);
-
-    memcpy(data + 10, (const char*)(&requestIdNet), 4);
-
-    data[14] = error;
-
-    memcpy(data + 15, (const char*)(&requestIdNet), 4);
-
-    send(data, HEADER_SIZE);
+    sendBin(data, HEADER_SIZE);
 
 }
 
-void CTcpConn::send(const char* data, uint32_t size)
+void CTcpConn::sendBin(const char* data, uint32_t size)
 {
     if (m_output.size() == 0)
     {
@@ -298,4 +266,20 @@ void CTcpConn::handleClose(TcpConnPtr conn)
     closeCallback(conn);
 
     log(Info, "[OnPeerClosed] sockfd:%d ",conn->getFd());
+}
+
+void CTcpConn::setBlocking(bool bBlock){
+
+    long flag = ::fcntl(fd, F_GETFL);
+    if (flag == -1) {
+        throw Socket_Exception("fcntl(F_GETFL)");
+    }
+    if (bBlock)
+        flag &= ~O_NONBLOCK; 
+    else
+        flag |= O_NONBLOCK; 
+    if (-1 == ::fcntl(fd, F_SETFL, flag)) 
+    {
+        throw Socket_Exception("fcntl(F_SETFL)");
+    }
 }

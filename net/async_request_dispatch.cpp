@@ -43,27 +43,27 @@ void AsyncRequestMfcMap::stop()
     }
 }
 
-void AsyncRequestMfcMap::requestDispatch(const char* pData, uint32_t size, uint32_t cmd, uint32_t requestId, uint64_t uid64, const TcpConnPtr& conn)
+void AsyncRequestMfcMap::requestDispatch(const char* pData, uint32_t size, uint32_t cmd, const TcpConnPtr& conn)
 {
     std::map<uint32_t, BaseEntry*>::iterator it = m_mapCmdToEntry.find(cmd);
     if(it != m_mapCmdToEntry.end())
     {
         BaseEntry* entry = it->second;
-        google::protobuf::Message* msg = entry->unPack( pData, size, cmd, requestId, conn);
-        dispatcherToWorkers(msg, entry, cmd, requestId, uid64, conn);
+        google::protobuf::Message* msg = entry->unPack( pData, size, cmd , conn);
+        dispatcherToWorkers(msg, entry, cmd, conn);
     }
     else
     {
         log(Error, "[AsrequestDispatch] : can't find request entry:%u", cmd);
-        conn->sendError(cmd, requestId, 100);
+        conn->sendError(cmd, 100);
         return;
     }
 }
 
 void AsyncRequestMfcMap::dispatcherToWorkers(google::protobuf::Message* msg, 
-            BaseEntry* entry, uint32_t cmd, uint32_t requestId, uint64_t uid,  const  TcpConnPtr& conn)
+            BaseEntry* entry, uint32_t cmd,  const  TcpConnPtr& conn)
 {
-    RequestType req(conn, msg, cmd, requestId, uid, entry);
+    RequestType req(conn, msg, cmd, entry);
     
     if(conn.get())
     {
@@ -81,7 +81,7 @@ void AsyncRequestMfcMap::dispatcherToWorkers(google::protobuf::Message* msg,
                 Mutex m_mutex = pWorker->getMutex();            
                 MutexGuard lock(m_mutex);    
                 pWorker->notify();
-                log(Info, "[AsyncRequestMfcMap::dispatcherToWorkers] message queue size:[%lu] flow tid:%u", pWorker->getSize(), (unsigned int)pthread_self());
+            //    log(Info, "[AsyncRequestMfcMap::dispatcherToWorkers] message queue size:[%lu] flow tid:%u", pWorker->getSize(), (unsigned int)pthread_self());
                 return;    
             }
                 
@@ -105,29 +105,18 @@ void AsyncRequestMfcMap::Worker::process()
 
     try
     {
-        
         RequestType req;
         MutexGuard lock(m_cond.getMutex());
         if(m_queue.size() == 0)
         {
             m_cond.wait();    
         }
-        log(Info, "[Work::process] queue size:%lu", m_queue.size());
-    //    if(!m_queue.popElement(req))
-    //        return;
         req = m_queue.front();
         m_queue.pop_front();
 
-        struct timeval tpstart,tpend; 
-        gettimeofday(&tpstart,NULL); //记录开始时间戳
-
-        req.entry->handleMessage(req.msg, req.cmd, req.requestId, req.conn, req.uid);
-        //req.entry->handleMessage(req.msg, req.cmd, req.requestId, req.conn, req.uid, &mysql);
+        req.entry->handleMessage(req.msg, req.cmd, req.conn );
         
         delete req.msg;
-        gettimeofday(&tpend,NULL); //记录结束时间戳
-        uint32_t  timeuse = 1000000*(tpend.tv_sec-tpstart.tv_sec)+ tpend.tv_usec-tpstart.tv_usec; //计算差值
-        log(Info, "[handleMessage] ok cmd: %u thread:%u ------>>cost:%ums", req.cmd, (unsigned int)pthread_self(), timeuse/1000);
     }
     catch(exception& e)
     {

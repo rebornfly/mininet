@@ -7,7 +7,6 @@
 #include <strings.h>
 #include <cassert>
 #include "timer.h"
-#include "../common/znb_ex.h"
 #include "logger.h"
 
 using namespace znb;
