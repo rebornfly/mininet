@@ -81,7 +81,6 @@ void AsyncRequestMfcMap::dispatcherToWorkers(google::protobuf::Message* msg,
                 Mutex m_mutex = pWorker->getMutex();            
                 MutexGuard lock(m_mutex);    
                 pWorker->notify();
-            //    log(Info, "[AsyncRequestMfcMap::dispatcherToWorkers] message queue size:[%lu] flow tid:%u", pWorker->getSize(), (unsigned int)pthread_self());
                 return;    
             }
                 
