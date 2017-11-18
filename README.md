@@ -1,7 +1,16 @@
-mininet 是一个基于epoll的轻量高性能网络框架库, 其主要的特点：
+#  轻量级epoll网络框架
+
+## 特点：
 * 智能指针管理链接生命周期
 * 使用bind+function做回调，松耦合
 * 工作线程回包采用，event_fd通知网络线程
+* 采用zlog作为日志输出，格式丰富，性能高
+* 支持多种线程模型：
+  1. 单线程模型 TcpServer+RequestMfcMap
+  2. 多线程，网络线程和多个工作线程，网路线程收发请求管理epoll，工作线程处理请求 TcpServer + AsyncRequestMfcMap
+  3. 多线程，网路线程负责侦听和多个工作线程， 网络线程只负责listen和connect，将连接派送给工作线程，由工作线程去收发关闭连接，每个工作线程管理一个   
+     epoll ， TcpServerMt + RequestMfcMap
+
 
 
 
