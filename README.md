@@ -12,22 +12,17 @@
      epoll ， TcpServerMt + RequestMfcMap  
      
 ##  依赖第三方库:  
-  [zlog](https://github.com/HardySimpson/zlog)  
-  [protobuf](https://github.com/google/protobuf)
-
-
-
-
+  [zlog 高性能日志库](https://github.com/HardySimpson/zlog) 
+  [protobuf 传输协议](https://github.com/google/protobuf)  
+  
+##  使用：可以参考example中server的写法
 ```C++
 int main(int sz, char* argc[])
 {
-    initLog("../conf/log.conf", "server_lb", "", "");
+    initLog("../conf/log.conf", "server");
 
     CMainLoop mainLoop;
     mainLoop.Init();
-
-    //初始化服务器配置
-    INIT_SERVER_CONFIG;
 
     //数据处理器
     CNetDataHandler dataHandler;
