@@ -12,8 +12,8 @@
      epoll ， TcpServerMt + RequestMfcMap  
      
 ##  依赖第三方库:  
-  [zlog 高性能日志库](https://github.com/HardySimpson/zlog) 
-  [protobuf 传输协议](https://github.com/google/protobuf)  
+  [zlog 高性能日志库](https://github.com/HardySimpson/zlog)  
+  [prootobuf 传输协议](https://github.com/google/protobuf)  
   
 ##  使用：可以参考example中server的写法
 ```C++
