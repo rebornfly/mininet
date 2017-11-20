@@ -9,12 +9,11 @@
   1. 单线程模型 TcpServer+RequestMfcMap  
   2. 多线程，网络线程和多个工作线程，网路线程收发请求管理epoll，工作线程处理请求 TcpServer + AsyncRequestMfcMap  
   3. 多线程，网路线程负责侦听和多个工作线程， 网络线程只负责listen和connect，将连接派送给工作线程，由工作线程去收发关闭连接，每个工作线程管理一个   
-     epoll ， TcpServerMt + RequestMfcMap
-
-
-  ##  依赖第三方库:  
-  ![zlog](https://github.com/HardySimpson/zlog)  
-  ![protobuf](https://github.com/google/protobuf)
+     epoll ， TcpServerMt + RequestMfcMap  
+     
+##  依赖第三方库:  
+  [zlog](https://github.com/HardySimpson/zlog)  
+  [protobuf](https://github.com/google/protobuf)
 
 
 
