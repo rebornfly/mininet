@@ -8,8 +8,7 @@
 * 支持多种线程模型:  
   * 单线程模型 TcpServer+RequestMfcMap  
   * 多线程，网络线程和多个工作线程，网路线程收发请求管理epoll，工作线程处理请求 TcpServer + AsyncRequestMfcMap  
-  * 多线程，网路线程负责侦听和多个工作线程， 网络线程只负责listen和connect，将连接派送给工作线程，由工作线程去收发关闭连接，每个工作线程管理一个 
-      epoll ， TcpServerMt + RequestMfcMap  
+  * 多线程，网路线程负责侦听和多个工作线程， 网络线程只负责listen和connect，TcpServerMt + RequestMfcMap  
          
 ###  依赖第三方库:  
   [zlog 高性能日志库](https://github.com/HardySimpson/zlog)  
@@ -30,7 +29,22 @@
 * tcpservermt:  
 * thread:  
 
+### 多线程模型
+ * tcpserver+AsyncRequestMfcMap: 由网络线程和工作线程组成，工作线程不处理网络事件 
+ * tcpservermt+RequestMfcMap: 由网络线程和工作线程组成，网络线程只负责listen和connect，工作线程负责链接上的read， write， close事件以及处理请求
+   工作线程和网络线程都有自己的epoll，工作线程和网络线程通信采用管道触发读写，每个工作线程创建时候都会创建一个管道  
+   ```
+   if (pipe(m_pipefd) == -1)
+    {
+        throw Socket_Exception("pipe");
+    }
 
+    // 监控管道的读端
+    pipecaller.reset(new PipeCaller(m_pipefd[0], &m_pE));
+    
+    pipecaller->setnewConnectionCallback(boost::bind(&TcpServerMt::Worker::handleRead, this));
+
+   ```
 ### 用法
 * 初始化日志`initLog`
 * 初始化`mainLoop`  
