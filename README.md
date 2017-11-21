@@ -25,13 +25,21 @@
 * 启动主循环mainLoop，epoll开始run
 ```C++
 class CTest{
- public:
-     CTest(RequestMfcMap& mfcMap){
+public:
+    CTest(RequestMfcMap& reqCtx)
+     {
+         reqCtx.addRequestMap<CTest, TestReq>(this,1 , &CTest::onTest);
      }
-     ~CTest(){
-     };
-     
-     void onTest()
+     ~CTest()
+     {
+     }
+
+     void onTest(TestReq* msg, uint32_t cmd, const TcpConnPtr& conn)
+     {
+         TestRsp rsp;
+         rsp.set_res("hello, i'm server");
+         conn->sendResponse(rsp, 1);
+     }
      
 };
 int main(int sz, char* argc[])
