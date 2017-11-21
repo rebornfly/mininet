@@ -10,13 +10,19 @@
   * 多线程，网络线程和多个工作线程，网路线程收发请求管理epoll，工作线程处理请求 TcpServer + AsyncRequestMfcMap  
   * 多线程，网路线程负责侦听和多个工作线程， 网络线程只负责listen和connect，将连接派送给工作线程，由工作线程去收发关闭连接，每个工作线程管理一个 
       epoll ， TcpServerMt + RequestMfcMap  
-      
-      ==============================================     
+         
 ###  依赖第三方库:  
   [zlog 高性能日志库](https://github.com/HardySimpson/zlog)  
   [prootobuf 传输协议](https://github.com/google/protobuf)  
   
-###  使用：可以参考example中server的写法
+###  用法
+* 初始化日志`initLog`
+* 初始化`mainLoop`
+* 定义数据处理器`dataHandler`
+* 初始化消息回调映射对象`AsyncRequestMfcMap`, `RequestMfcMap`
+* 初始化server `TcpServer`,`TcpServerMt`
+* 启动server开始listen
+* 启动主循环mainLoop，epoll开始run
 ```C++
 int main(int sz, char* argc[])
 {
