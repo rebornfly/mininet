@@ -18,9 +18,9 @@
 ###  用法
 * 初始化日志`initLog`
 * 初始化`mainLoop`  
-* 定义数据处理器`dataHandler`
+* 定义数据处理器`dataHandler`
 * 初始化消息回调映射对象`AsyncRequestMfcMap`, `RequestMfcMap`
-* 初始化server `TcpServer`,`TcpServerMt`
+* 初始化server `TcpServer`,`TcpServerMt`
 * 启动server开始listen
 * 启动主循环mainLoop，epoll开始run
 ```C++
