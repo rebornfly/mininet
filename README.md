@@ -29,8 +29,8 @@
 * tcpservermt:  多线程的tcpserer
 * thread:  线程，互斥量相关
  
-### 多线程模型
- * tcpserver+AsyncRequestMfcMap: 由网络线程和工作线程组成，工作线程不处理网络事件，工作线程的回报通过event_fd唤醒网络主线程：
+### 多线程模型  
+* tcpserver+AsyncRequestMfcMap: 由网络线程和工作线程组成，工作线程不处理网络事件，工作线程的回报通过event_fd唤醒网络主线程：
  ```
  void CEpoll::pushFuctor( Functor& fun)
  {
