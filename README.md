@@ -14,8 +14,11 @@
 ###  依赖第三方库:  
   [zlog 高性能日志库](https://github.com/HardySimpson/zlog)  
   [prootobuf 传输协议](https://github.com/google/protobuf)  
-  
-###  用法
+ 
+### 代码结构说明  
+* event_source: epoll监听的事件源，每一个listen套接字或者链接套接字都**拥有**一个事件源非继承
+* net_epoll: 管理了epoll的所有操作，创建，修改删除，以及
+### 用法
 * 初始化日志`initLog`
 * 初始化`mainLoop`  
 * 定义数据处理器`dataHandler`
