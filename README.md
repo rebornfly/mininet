@@ -17,18 +17,18 @@
 ### 代码结构说明  
 * event_source: epoll监听的事件源，每一个listen套接字或者链接套接字都**拥有**一个事件源非继承  
 * net_epoll: 管理了epoll的所有操作，创建，修改删除，以及  
-* async_request_dispatch:  
-* auto_timer:  
-* globals:  
-* net_conn:  
-* net_handler:  
-* request_dispatch:  
-* socket_buffer:  
-* socket_help:  
-* tcpserer:  
-* tcpservermt:  
-* thread:  
-
+* request_dispatch: 单线程消息派遣
+* async_request_dispatch:  多线程消息派遣
+* auto_timer, timer: 基于epoll的定时器  
+* globals:  epoll全局变量
+* net_conn:  链接类，封装了该链接上的read和write
+* net_handler:  链接数据处理
+* socket_buffer:  链接的读写缓冲区
+* socket_help:  常用socket相关函数
+* tcpserer:  普通tcpserver
+* tcpservermt:  多线程的tcpserer
+* thread:  线程，互斥量相关
+ 
 ### 多线程模型
  * tcpserver+AsyncRequestMfcMap: 由网络线程和工作线程组成，工作线程不处理网络事件 
  * tcpservermt+RequestMfcMap: 由网络线程和工作线程组成，网络线程只负责listen和connect，工作线程负责链接上的read， write， close事件以及处理请求
