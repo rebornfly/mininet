@@ -12,7 +12,7 @@
          
 ###  依赖第三方库:  
   [zlog 高性能日志库](https://github.com/HardySimpson/zlog)  
-  [prootobuf 传输协议](https://github.com/google/protobuf)  
+  [protobuf 传输协议](https://github.com/google/protobuf)  
  
 ### 代码结构说明  
 * event_source: epoll监听的事件源，每一个listen套接字或者链接套接字都**拥有**一个事件源非继承  
