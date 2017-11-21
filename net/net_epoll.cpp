@@ -44,7 +44,6 @@ int CEpoll::netEpollAdd(CEvSource* pEv, int mask)
     if(mask & EPOLL_READABLE) es.events |= EPOLLIN;
     if(mask & EPOLL_WRITEABLE) es.events |= EPOLLOUT;
 
-    //¸úÐÂÊÂ¼þ //
     if(op == EPOLL_CTL_ADD) m_setEv.insert(pEv);
     pEv->setCurrentMask(mask);
 
@@ -86,7 +85,6 @@ int CEpoll::netEpollDel(CEvSource* pEv , int mask)
         return NET_ERR;
     }
 
- //   log(Warn, "[netEpollDel] fd:%u es:%p, delmask:%u", pEv->getFd(), pEv, delmask);
 
     if(delmask == EPOLL_NONE)
     {
@@ -185,7 +183,6 @@ void CEpoll::wakeup()
     uint64_t u = 1;
 
     ssize_t flag = ::write(m_eventFd, &u, sizeof(uint64_t));
-//    log(Info, "[TEST::wakeup] m_eventFd:%u", m_eventFd);
     if(flag != sizeof(uint64_t))
     {
         log(Error, "[CEpoll::wakeup] flag:%lu, err:%s", flag ,strerror(errno));
@@ -221,5 +218,4 @@ void CEpoll::pushFuctor( Functor& fun)
     {
         wakeup();
     }
-    //log(Info, "[pushFunctors] tid:%u|%d", (unsigned int)pthread_self(), m_bStop);
 }
