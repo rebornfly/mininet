@@ -24,6 +24,16 @@
 * 启动server开始listen
 * 启动主循环mainLoop，epoll开始run
 ```C++
+class CTest{
+ public:
+     CTest(RequestMfcMap& mfcMap){
+     }
+     ~CTest(){
+     };
+     
+     void onTest()
+     
+};
 int main(int sz, char* argc[])
 {
     initLog("../conf/log.conf", "server");
