@@ -16,7 +16,7 @@
  
 ### 代码结构说明  
 * event_source: epoll监听的事件源，每一个listen套接字或者链接套接字都**拥有**一个事件源非继承  
-* net_epoll: 管理了epoll的所有操作，创建，修改删除，以及  
+* net_epoll: 管理了epoll的所有操作，创建，以及修改删除事件
 * request_dispatch: 单线程消息派遣
 * async_request_dispatch:  多线程消息派遣
 * auto_timer, timer: 基于epoll的定时器  
@@ -30,11 +30,36 @@
 * thread:  线程，互斥量相关
  
 ### 多线程模型
- * tcpserver+AsyncRequestMfcMap: 由网络线程和工作线程组成，工作线程不处理网络事件 
+ * tcpserver+AsyncRequestMfcMap: 由网络线程和工作线程组成，工作线程不处理网络事件，工作线程的回报通过event_fd唤醒网络主线程：
+ ```
+ void CEpoll::pushFuctor( Functor& fun)
+ {
+    {
+        MutexGuard lock(m_mutex);
+        m_vecPendingFunctors.push_back(fun);
+    }
+
+    if (!m_bcallingPendingFunctors)
+    {
+        wakeup();
+    }
+ }
+ 
+ void CEpoll::wakeup()
+ {
+    uint64_t u = 1;
+
+    ssize_t flag = ::write(m_eventFd, &u, sizeof(uint64_t));
+    if(flag != sizeof(uint64_t))
+    {
+        log(Error, "[CEpoll::wakeup] flag:%lu, err:%s", flag ,strerror(errno));
+    }
+ }
+ ```
  * tcpservermt+RequestMfcMap: 由网络线程和工作线程组成，网络线程只负责listen和connect，工作线程负责链接上的read， write， close事件以及处理请求
    工作线程和网络线程都有自己的epoll，工作线程和网络线程通信采用管道触发读写，每个工作线程创建时候都会创建一个管道  
    ```
-   if (pipe(m_pipefd) == -1)
+    if (pipe(m_pipefd) == -1)
     {
         throw Socket_Exception("pipe");
     }
