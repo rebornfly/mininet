@@ -70,6 +70,9 @@
     pipecaller->setnewConnectionCallback(boost::bind(&TcpServerMt::Worker::handleRead, this));
 
    ```
+### 链接生命周期  
+链接 的生命周期管理是链接跨线程处理的难点，本框架通过shared_ptr管理链接生命周期
+ 
 ### 用法
 * 初始化日志`initLog`
 * 初始化`mainLoop`  
