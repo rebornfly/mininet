@@ -6,9 +6,9 @@
 * 工作线程回包采用event_fd通知网络线程
 * zlog日志输出，协议采用protobuf
 * 支持多种线程模型:  
-  * 单线程模型 TcpServer+RequestMfcMap  
+  * 单线程模型 TcpServer+RequestMfcMap  
   * 多线程，网络线程和多个工作线程，网路线程收发请求管理epoll，工作线程处理请求 TcpServer + AsyncRequestMfcMap  
-  * 多线程，网路线程负责监听listen socket连接事件，其他工作线程负责socket读写事件， 网络线程只负责listen和connect通过管道派发给工作线程，TcpServerMt + RequestMfcMap  
+  * 多线程，网路线程负责监听listen socket连接事件，其他工作线程负责socket读写事件， 网络线程只负责listen和connect通过管道派发给工作线程，TcpServerMt + RequestMfcMap  
          
 ###  依赖第三方库:  
   [zlog 高性能日志库](https://github.com/HardySimpson/zlog)  
